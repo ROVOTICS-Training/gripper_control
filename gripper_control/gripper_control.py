@@ -10,13 +10,11 @@ class gripper(Node):
         self.previous = 0
         self.position = True
         self.subscription = self.create_subscription(Joy, 'joy', self.joy_callback, 10)
-        self.subscription
         self.logger = self.get_logger()
     def joy_callback(self, joy_msg):
         button_status = joy_msg.buttons[0]
         if self.previous == 0 and button_status ==1:
             self.move()
-            self.logger.info(str(button_status))
         if button_status == 1:
             self.previous = 1
         if button_status == 0:
