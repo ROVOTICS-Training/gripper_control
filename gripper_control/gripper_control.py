@@ -2,6 +2,8 @@ import rclpy
 from rclpy.node import Node
 
 from sensor_msgs.msg import Joy
+from Phidget22.Phidget import *
+from Phidget22.Devices.DigitalOutput import *
 
 
 class gripper(Node):
@@ -11,6 +13,16 @@ class gripper(Node):
         self.position = True
         self.subscription = self.create_subscription(Joy, 'joy', self.joy_callback, 10)
         self.logger = self.get_logger()
+
+        try:
+            self.gripper = DigitalOutput()
+            self.gripper.openWaitForAttachment(1000)
+            self.gripper.setChannel(0)
+        except:
+            self.logger.warn('cant lode the phidget')
+
+
+
     def joy_callback(self, joy_msg):
         button_status = joy_msg.buttons[0]
         if self.previous == 0 and button_status ==1:
@@ -24,11 +36,17 @@ class gripper(Node):
 
 
     def move(self):
-        if self.position == True:
-            self.position = False
-        else:
-            self.position = True
-        self.logger.info(str(self.position))
+        try:
+            self.position = self.gripper.getState()
+            if self.position == True:
+                self.gripper.setDutyCycle(0)
+                
+            else:
+                self.gripper.setDutyCycle(1)
+                
+            self.logger.info(str(self.position))
+        except:
+            self.logger.warn('cant move the phidget')
 
 
 
@@ -42,6 +60,7 @@ def main(args=None):
 
     gripper1.destroy_node()
     rclpy.shutdown()
+    gripper1.gripper.close()
 
 
 if __name__ == '__main__':
